@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>GS1 Myanmar QR Code Generator</title>
+    <link rel="icon" href="{{ url_for('static', filename='url_icon.png') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-top: -10px;
+        }
+        .container {
+            display: flex;
+            flex-direction: row;
+        }
+
+        /* Left side div */
+        .left {
+            flex: 1;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        /* Right side div */
+        .right {
+            flex: 1;
+            padding: 20px;
+            background-color: #fff;
+        }
+
+        @media (max-width: 767px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .right,
+            .left {
+                flex: none;
+                width: 100%;
+            }
+        }
+        .logo {
+            text-align: center;
+        }
+
+        .logo img {
+            max-width: 200px;
+            height: auto;
+            width: 150px;
+            height: 95px;
+        }
+
+        .popup-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 9999;
+    }
+
+    .popup-content {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        text-align: center;
+    }
+
+    .popup-close {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        color: #555;
+        font-size: 18px;
+        cursor: pointer;
+    }
+
+        form {
+            max-width: 400px;
+            margin: 0 auto;
+            /* background-color: #fff; */
+            padding: 20px;
+            border-radius: 5px;
+            /* box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); */
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #012D6C;
+        }
+        input:hover{
+            color: #012D6C;
+        }
+        input[type="text"] {
+            width: 94%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        button[type="submit"] {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-top: 20px;
+            background-color: #F26335;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button[type="submit"]:hover{
+            background-color: #d67859;
+        }
+        .preview-tab {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        #qrImage {
+            max-width: 300px;
+            max-height: 300px;
+            border: 2px solid #F26335;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .refresh-button {
+            display: inline-block;
+            padding: 8px 16px;
+            background-color: #012D6C;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 14px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
+        .verify-tooltip {
+            position: absolute;
+            display: none;
+            background-color: #f7efef;
+            color: rgb(53, 51, 51);
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+            z-index: 1;
+        }
+
+        .format-checkbox:hover .verify-tooltip {
+            display: block;
+        }
+
+        .error-message {
+            color: #ff0000;
+            margin-bottom: 10px;
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+            background-color: #ffeeee;
+            border: 2px solid #ff0000;
+            border-radius: 4px;
+            padding: 10px;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+      <!-- Popup Section -->
+      <div class="popup-container">
+        <div class="popup-content">
+            <h3>Welcome to GS1 Myanmar QR Code Generator</h3>
+            <p>Choose your language:</p>
+            <div class="language-buttons">
+                <span onclick="changeLanguage('en')" style="color: #F26335; cursor: pointer;">English</span>
+                <span>|</span>
+                <span onclick="changeLanguage('my')" style="color: #F26335; cursor: pointer;">Burmese</span>
+            </div>
+            <p id="greeting-message"></p>
+            <button onclick="closePopup()" class="refresh-button" style="cursor: pointer;">Access Generator</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="left">
+    <div class="logo">
+        <img src="{{ url_for('static', filename='new2.png') }}" alt="Logo">
+    </div>
+    <h1>QR Code Generator</h1>
+    <div style="text-align: center; margin-left: -30px;">
+    <iframe width="90%" height="305" src="https://www.youtube.com/embed/1gGdWfCjxBc" frameborder="0" allowfullscreen></iframe>
+
+    </div>
+
+    </div>
+
+
+    <div class="right">
+    <form action="/GS1Myanmar_QR" method="post" onsubmit="return validateForm();">
+        <label for="data">Enter Text or URL</label>
+        <span style="font-size: 13px;">Example: https://gs1mm.org</span>
+        <input type="text" name="data" id="data" required>
+        <label><br>Choose formats:</label>
+        <div>
+            <label class="format-checkbox">
+                <input type="checkbox" name="format[]" value="image" style="cursor: pointer;"> Image
+        
+            </label>
+            <label class="format-checkbox">
+                <input type="checkbox" name="format[]" style="cursor: pointer;" value="verify"> 
+                <span style="text-decoration: underline; cursor: pointer;">
+                    Verified by GS1 Myanmar
+                   
+                </span>
+                <span style=" color: red;
+                font-size: 10px;">(Recommend)</span>
+                <span class="verify-tooltip"> By choosing this tab, you will get a verify attachment <br>
+                    which was provided by GS1 Myanmar and QR image.</span>
+            </label>
+        </div>
+        
+        
+        {% if error_message %}
+        <div class="error-message">{{ error_message }}</div>
+        {% endif %}
+        <button type="submit">Download</button>
+       
+        <div class="preview-tab" id="previewTab">
+            <h2>Live-preview</h2>
+            <img id="qrImage" src="" alt="QR Code">
+            <br>
+            <button type="button" class="refresh-button" onclick="refreshQRCode()">Refresh</button>
+        </div>
+
+    </form>
+</div>
+</div>
+    <script>
+      // Function to change the language
+    function changeLanguage(lang) {
+        var greetingMessage = document.getElementById('greeting-message');
+
+        if (lang === 'en') {
+            greetingMessage.innerHTML = 'You can use our QR code in your Product, Website, Marketing, Healthcare, Events etc. <br>If there is any issues related to "YOUR DISTRIBUTIONS" of QR produced by GS1 Myanmar, <br> we would like to inform you that we will not be responsible for solving it aspect an error of <br> GS1 Myanmar QR Generator(Bad resolution, ECC error, Quietzone Error). ';
+        } else if (lang === 'my') {
+            greetingMessage.innerHTML = 'GS1 Myanmar QR Code အား လူကြီးမင်းသုံးဆွဲလိုသည့် Product, Website, Marketing, Healthcare, Events etc. <br>အစရှိသည့်နေရာများတွင် အသုံးပြုနိုင်ပါသည်။ <br> GS1 Myanmar Generator မှ (QR ပုံမကောင်းခြင်း၊ ECC မှားခြင်း၊ Quiet Zone မှားခြင်းတို့ကြုံတွေ့ပါက GS1 Myanmar အားဆက်သွယ်ပါ။ <br>အကယ်၍ မိမိ​၏ ဖြန့်ဖြူးပြီးထုတ်ကုန်/ပစ္စည်းများတွင် အသုံးပြုပြီးသောQRများ ဖြင့်ပတ်သတ်၍ အကြောင်းကိစ္စတစုံတစ်ရာ ပေါ်ပေါက်လာပါက <br>GS1 Myanmar မှတာဝန်ယူဖြေရှင်းပေးမည် မဟုတ်ကြောင်းအသိပေးအပ်ပါသည်။ ';
+        }
+    }
+
+    // Function to close the popup section
+    function closePopup() {
+        var popupContainer = document.querySelector('.popup-container');
+        popupContainer.style.display = 'none';
+    }
+
+    // Function to handle clicks outside the popup section
+    function handleClickOutside(event) {
+        var popupContent = document.querySelector('.popup-content');
+        if (!popupContent.contains(event.target)) {
+            closePopup();
+        }
+    }
+
+    // Show the popup section on page load
+    window.addEventListener('DOMContentLoaded', function () {
+        var popupContainer = document.querySelector('.popup-container');
+        popupContainer.style.display = 'flex';
+
+        // Set the default language to Myanmar (Burmese)
+        changeLanguage('my');
+
+        // Add event listener to handle clicks outside the popup section
+        document.addEventListener('click', handleClickOutside);
+    });
+
+        // Function to update the QR code image source
+        function updateQRCodeImageSource(data) {
+            var qrImage = document.getElementById("qrImage");
+            qrImage.src = "/generate_qr?data=" + encodeURIComponent(data);
+        }
+
+        // Function to refresh the QR code image
+        function refreshQRCode() {
+            var qrImage = document.getElementById("qrImage");
+            qrImage.src = qrImage.src + "&timestamp=" + new Date().getTime();
+        }
+
+        // Event listener for the data input field
+        var dataInput = document.getElementById("data");
+        dataInput.addEventListener('input', function () {
+            updateQRCodeImageSource(dataInput.value);
+        });
+
+        // Function to validate the form before submission
+        function validateForm() {
+            var formatCheckboxes = document.querySelectorAll('input[name="format[]"]:checked');
+
+            if (formatCheckboxes.length === 0) {
+                alert("You need to check at least 1 option of GS1 Myanmar.");
+                return false;
+            }
+
+            return true;
+        }
+
+        // Automatically show the generated QR code on page load
+        window.addEventListener('DOMContentLoaded', function () {
+            var data = document.getElementById("data").value;
+            updateQRCodeImageSource(data);
+        });
+    </script>
+</body>
+</html>
