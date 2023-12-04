@@ -8,6 +8,9 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.enums import TA_JUSTIFY
 import datetime
+from reportlab.lib import utils
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table
+
 
 app = Flask(__name__)
 
@@ -93,11 +96,20 @@ def generate_pdf(data, qr_image_buffer):
     qr_code_image = Image(qr_image_buffer)
 
     # Add your own image to the PDF
-    your_image_path = 'static/GS1mm_Verify4.png'  # Replace image path like GS1 logo
-    your_image = Image(your_image_path)
+    # your_image_path = 'static/GS1mm_Verify4.png'  
+    # your_image = Image(your_image_path)
 
-    your_image_path2 = 'static/new4.png'  # Replace image path like GS1 logo
-    your_image2 = Image(your_image_path2)
+    gs1_logo_path = 'static/gs1_logo.png'  # Replace with the path to your GS1 logo
+    mba_logo_path = 'static/mba_logo.png'  # Replace with the path to your MBA logo
+    gs1_logo = utils.ImageReader(gs1_logo_path)
+    mba_logo = utils.ImageReader(mba_logo_path)
+    header_style = ParagraphStyle(
+        'header_style',
+        parent=styles['Normal'],
+        fontSize=9,
+        textColor='#012D6C',
+        alignment=TA_CENTER
+    )
 
     generated_on_text = f'''Generated on: {datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
     <br/>ECC Level: Quartile(QR Code ECC LEVEL Q : 25% of the data can be restored.)
@@ -114,11 +126,13 @@ def generate_pdf(data, qr_image_buffer):
 
     additional_text2 = '''
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    This attachment is about Verifying your QR that was produced from GS1 Myanmar.
+    This attachment is about Verifying your QR code that was produced by GS1 Myanmar.
     You can use our QR code in your Product, Website, Marketing, Healthcare, Events etc.
+    
     If there is any issues related to 'YOUR DISTRIBUTIONS' of QR produced by GS1 Myanmar,
     we would like to inform you that we will not be responsible for solving it aspect
     an error of GS1 Myanmar QR Generator(Bad resolution, ECC error, Quietzone Error).
+    
     If you had an error with our generator contact us as soon as possible.
    '''
     additional_text2_style = ParagraphStyle(
@@ -127,12 +141,12 @@ def generate_pdf(data, qr_image_buffer):
         fontSize=10,
         spaceAfter=6,
         textColor='#012D6C',
-        alignment=TA_JUSTIFY
-
+        alignment=TA_JUSTIFY,
+        leading = 25
     )
 
     # Additional text to be added at the bottom of the PDF
-    additional_text = f'''Address: UMFCCI 5 Floor, Min Ye KyawSwar Road, Lanmadaw, Yangon<br/>
+    additional_text = f'''Address: UMFCCI 5 Floor, Min Ye Kyaw Swar Road, Lanmadaw TSP, Yangon<br/>
 Email: info@gs1myanmar.org<br/>
 Phone: +959446868002, +959446868004<br/>
 Wesbite: https://gs1mm.org'''
@@ -149,7 +163,11 @@ Wesbite: https://gs1mm.org'''
    
     story = []
 
-    story.append(your_image2)
+    header_table = Table([
+    [Image(gs1_logo_path, width=140, height=80), '', Image(mba_logo_path, width=140, height=80)]
+], colWidths=[150, 240, 180])
+   
+    story.append(header_table)
     story.append(Paragraph(data, styles['Heading1']))
     story.append(Spacer(1, 12))
     # Set the width and height of the QR code image
@@ -163,7 +181,7 @@ Wesbite: https://gs1mm.org'''
     story.append(Paragraph(additional_text2, additional_text2_style))
     story.append(Spacer(1, 12))
     story.append(Paragraph(additional_text, additional_text_style))
-    story.append(your_image)  # Add GS1 logo to the PDF
+    # story.append(your_image)  
 
     doc.build(story)
     pdf_buffer.seek(0)
